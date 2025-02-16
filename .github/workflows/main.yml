@@ -24,7 +24,7 @@ jobs:
         run: mvn clean package
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: my-app-jar
-          path: target/*.jar
+          name: interview-task-2025
+          path: target/interview-task-2025.jar
