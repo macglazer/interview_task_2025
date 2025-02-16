@@ -1,8 +1,9 @@
 package org.interviewtask2025.javaImpl;
 
-
+import org.interviewtask2025.core.PairFinder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -12,9 +13,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FileHandlerTest {
 
@@ -41,6 +40,7 @@ class FileHandlerTest {
     }
 
     @Test
+    @DisplayName("readNumbersFromFile_validData: Reads valid numbers from file")
     void readNumbersFromFile_validData() throws IOException {
         // GIVEN:
         Path inputFile = tempDir.resolve("valid_data.txt");
@@ -59,8 +59,9 @@ class FileHandlerTest {
     }
 
     @Test
+    @DisplayName("readNumbersFromFile_invalidData: Ignores invalid tokens and out-of-range numbers")
     void readNumbersFromFile_invalidData() throws IOException {
-        // GIVEN:
+        // GIVEN: file with invalid data
         Path inputFile = tempDir.resolve("invalid_data.txt");
         List<String> lines = Arrays.asList(
                 "abc 13 -1 5 11 0",
@@ -72,39 +73,53 @@ class FileHandlerTest {
         List<Integer> result = FileHandler.readNumbersFromFile(inputFile.toString());
 
         // THEN:
-
         assertEquals(5, result.size());
         assertTrue(result.containsAll(Arrays.asList(5, 11, 0, 12, 7)));
     }
 
     @Test
-    void writeLinesToFile_shouldWriteAndOverwriteExistingFile() throws IOException {
+    @DisplayName("processFileLineByLine_shouldProcessFileCorrectly: Processes file line by line")
+    void processFileLineByLine_shouldProcessFileCorrectly() throws IOException {
         // GIVEN:
+        Path inputFile = tempDir.resolve("input.txt");
+        List<String> inputLines = Arrays.asList(
+                "0 0 0 0 0 0 12 12 12 12 12 12",
+                "1 11"
+        );
+        Files.write(inputFile, inputLines);
+
         Path outputFile = tempDir.resolve("output.txt");
 
-        Files.write(outputFile, Arrays.asList("Old content"));
-
-        List<String> linesToWrite = Arrays.asList("Line 1", "Line 2", "Line 3");
-
         // WHEN:
-        FileHandler.writeLinesToFile(outputFile.toString(), linesToWrite);
+        JavaPairsApp app = new JavaPairsApp();
+        FileHandler.processFileLineByLine(inputFile.toString(), outputFile.toString(), app);
 
         // THEN:
-        List<String> writtenLines = Files.readAllLines(outputFile);
-        assertEquals(3, writtenLines.size());
-        assertEquals("Line 1", writtenLines.get(0));
-        assertEquals("Line 2", writtenLines.get(1));
-        assertEquals("Line 3", writtenLines.get(2));
+        List<String> outputLines = Files.readAllLines(outputFile);
+
+        assertTrue(outputLines.get(0).startsWith("Results generated on:"));
+
+        String expectedLine1 = "[0, 12] [0, 12] [0, 12] [0, 12] [0, 12] [0, 12]";
+        assertEquals(expectedLine1, outputLines.get(1).trim());
+
+        String expectedLine2 = "[1, 11]";
+        assertEquals(expectedLine2, outputLines.get(2).trim());
     }
 
     @Test
-    void writeLinesToFile_invalidPath() {
+    @DisplayName("processFileLineByLine_invalidOutputPath: Does not throw exception on invalid output path")
+    void processFileLineByLine_invalidOutputPath() throws IOException {
         // GIVEN:
-        String invalidFileName = tempDir.resolve("invalid?file.txt").toString();
+        String invalidOutputFileName = tempDir.resolve("invalid?file.txt").toString();
+        Path inputFile = tempDir.resolve("input.txt");
+        List<String> inputLines = Arrays.asList("1 2 3 11 1");
+        Files.write(inputFile, inputLines);
+
+        JavaPairsApp app = new JavaPairsApp();
 
         // WHEN & THEN:
         assertDoesNotThrow(() ->
-                FileHandler.writeLinesToFile(invalidFileName, Arrays.asList("Test line"))
+                FileHandler.processFileLineByLine(inputFile.toString(), invalidOutputFileName, app)
         );
     }
 }
