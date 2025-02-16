@@ -18,16 +18,12 @@ public class Run {
             outputFileName = args[1];
         } else {
             inputFileName = "data.txt";
-            outputFileName = "src/main/resources/result.txt";
+            outputFileName = "result.txt";
         }
 
         List<Integer> numbers = FileHandler.readNumbersFromFile(inputFileName);
 
         List<PairFinder.Pair> pairs = app.findPairs(numbers);
-
-        List<String> pairStrings = pairs.stream()
-                .map(PairFinder.Pair::toString)
-                .collect(Collectors.toList());
 
         FileHandler.processFileLineByLine(inputFileName, outputFileName, app);
 
